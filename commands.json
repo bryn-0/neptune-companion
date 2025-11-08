@@ -2,12 +2,19 @@
   "the portal song": "m0",
   "kiss me through the phone" : "m1",
   "neon genesis theme" : "m2",
+  "Peter Griffin Death Note" : "m3",
+  "Chainsaw Man" : "m4",
 
   "video1" : "v0",
+  "fish" : "v0",
+  "gnome" : "v1",
+  "Rick Roll" : "v2",
+  "Shrek" : "v3",
+  "Bee Movie" : "v4",
 
   "convo1" : "c0",
+  "What time is it" : "c1",
+  "What's the weather" : "c2"
 
-  "loca pug" : "m3",
 
-  "dog video" : "v1"
 }
