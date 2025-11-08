@@ -8,7 +8,8 @@ import argparse
 import queue
 import sys
 import sounddevice as sd
-sd.default.device = 5,0
+sd.default.device = 0,0
+import os
 from vosk import Model, KaldiRecognizer
 
 import time
@@ -17,8 +18,13 @@ from rapidfuzz import process
 import pygame
 from pyvidplayer2 import Video
 #from audioplayer import AudioPlayer
+#from output import codeKey
+#import threading
+
 
 q = queue.Queue()
+
+print(sd.query_devices())
 
 def load_commands(filename = "commands.json"):
     with open(filename, "r") as f:
@@ -88,9 +94,11 @@ try:
         args.samplerate = int(device_info["default_samplerate"])
 
     if args.model is None:
-        model = Model(lang="en-us")
+        model_path = os.path.expanduser("~/Desktop/vosk-model-small-en-us-0.15")
     else:
-        model = Model(lang=args.model)
+        model_path = args.model
+
+    model = Model(model_path)
 
     if args.filename:
         dump_fn = open(args.filename, "wb")
@@ -129,6 +137,8 @@ try:
                                 string = rec.Result()
                                 print(string)
                                 print(get_response(string, commands))
+                                key = (get_response(string, commands))
+                                #codeKey(key)
                                 #print(rec.Result())
                                 break
 

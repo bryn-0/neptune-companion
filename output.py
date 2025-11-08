@@ -1,6 +1,7 @@
 import pygame
 import os
 from pyvidplayer2 import Video
+import json
 
 
 pygame.init()
@@ -57,7 +58,41 @@ def play_media(mp_name):
 
 
 ##testing method
-play_media("mp3/kissmephone.mp3")
+##play_media("mp3/kissmephone.mp3")
+
+with open('commands.json', 'r') as f:
+    commandsJSON = json.load(f)
+
+with open('music.json', 'r') as s:
+    musicJSON = json.load(s)
+
+with open('videos.json', 'r') as t:
+    videosJSON = json.load(t)
+
+def codeKey(key):
+        print(f"codeKey: {key}")
+    ##if key in commandsJSON:
+        ##print(f"Found command: {commandsJSON[key]}")
+        ##value = commandsJSON[key]
+
+        if key [0] == "m" :
+            print("Read as MP3")
+            if key[1] in musicJSON:
+                print(musicJSON[key[1]])
+                play_media(musicJSON[key[1]])
+
+        if key [0] == "v" :
+            print("Read as Video")
+            if key[1] in videosJSON:
+                print(videosJSON[key[1]])
+                play_media(videosJSON[key[1]])
+
+#codeKey("loca pug video")
+
+
+
+
+
 
 
 running = True
