@@ -2,7 +2,6 @@ import pygame
 import os
 from pyvidplayer2 import Video
 
-
 pygame.init()
 pygame.mixer.init()
 
