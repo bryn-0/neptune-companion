@@ -8,7 +8,7 @@ signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 def tts(text):
     for i in range(0, len(text)):
 
-        # CHANGE PATH IN FINAL VERSION******************
+        # CHANGE PATH IN FINAL VERSION ******************
         piper_proc = subprocess.Popen(
             ["piper", "--model", "/home/Bryan/Downloads/en_US-lessac-high.onnx", "--output_raw"],
             stdin=subprocess.PIPE,
@@ -38,4 +38,5 @@ musket = ["I own a musket for home defense, since that's what the founding fathe
 "I have to resort to the cannon mounted at the top of the stairs loaded with grape shot,"," Tally ho lads! The grape shot shreds two men in the blast, the sound and extra shrapnel set off car alarms.",
 "Fix bayonet and charge the last terrified rapscallion.", "He bleeds out waiting on the police to arrive since triangular bayonet wounds are impossible to stitch up.","Ah yes,Just as the founding fathers intended"]
 
+death = ["I'm sorry Miss Jackson HOOO, But I. Am. For. REEEEAALLL"]
 tts(musket)

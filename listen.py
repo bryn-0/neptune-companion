@@ -14,6 +14,7 @@ from vosk import Model, KaldiRecognizer
 import time
 import json
 from rapidfuzz import process
+from tts import tts
 import pygame
 from pyvidplayer2 import Video
 #from audioplayer import AudioPlayer
@@ -32,6 +33,14 @@ def get_response(input, commands):
         return commands[match]
     else:
         return "Command not found"
+
+def parseResponse(key):
+    if key[0] == 'm':
+        print()
+    if key[0] == 'v':
+        print()
+    if key[0] == 'c':
+        print()
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -129,6 +138,7 @@ try:
                                 string = rec.Result()
                                 print(string)
                                 print(get_response(string, commands))
+                                parseResponse(get_response(string, commands))
                                 #print(rec.Result())
                                 break
 
