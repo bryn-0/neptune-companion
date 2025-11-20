@@ -8,7 +8,8 @@ import argparse
 import queue
 import sys
 import sounddevice as sd
-sd.default.device = 5,0
+sd.default.device = 0,0
+import os
 from vosk import Model, KaldiRecognizer
 
 import time
@@ -18,8 +19,16 @@ from tts import tts
 import pygame
 from pyvidplayer2 import Video
 #from audioplayer import AudioPlayer
+#from output import codeKey
+#import threading
+from output import codeKey, start_media_loop
+import threading
+import subprocess
+
 
 q = queue.Queue()
+
+print(sd.query_devices())
 
 def load_commands(filename = "commands.json"):
     with open(filename, "r") as f:
@@ -90,23 +99,26 @@ args = parser.parse_args(remaining)
 
 commands = load_commands()
 
-try:
-    if args.samplerate is None:
-        device_info = sd.query_devices(args.device, "input")
-        # soundfile expects an int, sounddevice provides a float:
-        args.samplerate = int(device_info["default_samplerate"])
+def main_listen():
+    try:
+        if args.samplerate is None:
+            device_info = sd.query_devices(args.device, "input")
+            # soundfile expects an int, sounddevice provides a float:
+            args.samplerate = int(device_info["default_samplerate"])
 
-    if args.model is None:
-        model = Model(lang="en-us")
-    else:
-        model = Model(lang=args.model)
+        if args.model is None:
+            model_path = os.path.expanduser("~/Desktop/vosk-model-small-en-us-0.15")
+        else:
+            model_path = args.model
 
-    if args.filename:
-        dump_fn = open(args.filename, "wb")
-    else:
-        dump_fn = None
+        model = Model(model_path)
 
-    with sd.RawInputStream(samplerate=args.samplerate, blocksize=8000, device=args.device,
+        if args.filename:
+            dump_fn = open(args.filename, "wb")
+        else:
+            dump_fn = None
+
+        with sd.RawInputStream(samplerate=args.samplerate, blocksize=8000, device=args.device,
                            dtype="int16", channels=1, callback=callback):
         print("#" * 80)
         print("Press Ctrl+C to stop the recording")
@@ -139,6 +151,8 @@ try:
                                 print(string)
                                 print(get_response(string, commands))
                                 parseResponse(get_response(string, commands))
+                                codeKey(key)
+                                print(rec.Result())
                                 #print(rec.Result())
                                 break
 
@@ -150,8 +164,8 @@ try:
             if dump_fn is not None:
                 dump_fn.write(data)
 
-except KeyboardInterrupt:
-    print("\nDone")
-    parser.exit(0)
-except Exception as e:
-    parser.exit(type(e).__name__ + ": " + str(e))
+    except KeyboardInterrupt:
+        print("\nDone")
+        parser.exit(0)
+    except Exception as e:
+        parser.exit(type(e).__name__ + ": " + str(e))
