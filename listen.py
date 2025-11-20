@@ -15,6 +15,7 @@ from vosk import Model, KaldiRecognizer
 import time
 import json
 from rapidfuzz import process
+from tts import tts
 import pygame
 from pyvidplayer2 import Video
 #from audioplayer import AudioPlayer
@@ -41,6 +42,14 @@ def get_response(input, commands):
         return commands[match]
     else:
         return "Command not found"
+
+def parseResponse(key):
+    if key[0] == 'm':
+        print()
+    if key[0] == 'v':
+        print()
+    if key[0] == 'c':
+        print()
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -111,40 +120,41 @@ def main_listen():
 
         with sd.RawInputStream(samplerate=args.samplerate, blocksize=8000, device=args.device,
                            dtype="int16", channels=1, callback=callback):
-            print("#" * 80)
-            print("Press Ctrl+C to stop the recording")
-            print("#" * 80)
+        print("#" * 80)
+        print("Press Ctrl+C to stop the recording")
+        print("#" * 80)
 
-            rec = KaldiRecognizer(model, args.samplerate)
-            while True:
-                data = q.get()
-                if rec.AcceptWaveform(data):
-                    words = (rec.Result().split())
-                    words.remove("{")
-                    words.remove('"text"')
-                    words.remove(':')
-                    words.remove('}')
-                    print(words)
-                    for x in range(len(words)):
-                        if words[x] == "neptune" or words[x] == 'neptune"'  or words[x] == '"neptune' :
-                            #t = Timer(5.0, listen(data,rec))
-                            #t.start()
-                            t = time.monotonic()
-                            q.empty()
-                            while True:
-                                data = q.get()
-                                elapsed_time = time.monotonic() - t
-                                if elapsed_time >= 8:
-                                    break
-                                elif(rec.AcceptWaveform(data)):
-                                    print("something")
-                                    string = rec.Result()
-                                    print(string)
-                                    print(get_response(string, commands))
-                                    key = (get_response(string, commands))
-                                    codeKey(key)
-                                    print(rec.Result())
-                                    break
+        rec = KaldiRecognizer(model, args.samplerate)
+        while True:
+            data = q.get()
+            if rec.AcceptWaveform(data):
+                words = (rec.Result().split())
+                words.remove("{")
+                words.remove('"text"')
+                words.remove(':')
+                words.remove('}')
+                print(words)
+                for x in range(len(words)):
+                    if words[x] == "neptune" or words[x] == 'neptune"'  or words[x] == '"neptune' :
+                        #t = Timer(5.0, listen(data,rec))
+                        #t.start()
+                        t = time.monotonic()
+                        q.empty()
+                        while True:
+                            data = q.get()
+                            elapsed_time = time.monotonic() - t
+                            if elapsed_time >= 8:
+                                break
+                            elif(rec.AcceptWaveform(data)):
+                                print("something")
+                                string = rec.Result()
+                                print(string)
+                                print(get_response(string, commands))
+                                parseResponse(get_response(string, commands))
+                                codeKey(key)
+                                print(rec.Result())
+                                #print(rec.Result())
+                                break
 
 
 
