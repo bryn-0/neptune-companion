@@ -14,7 +14,12 @@
 
   "convo1" : "c0",
   "What time is it" : "c1",
-  "What's the weather" : "c2"
+  "What's the weather" : "c2",
+
+  "play dog video" : "v1",
+  "play flute" : "m9",
+  "play funny video" : "v9",
+  "smiling friends" : "v8"
 
 
 }
