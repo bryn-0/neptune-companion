@@ -8,7 +8,7 @@ import argparse
 import queue
 import sys
 import sounddevice as sd
-sd.default.device = 0,0
+sd.default.device = 11,11
 import os
 from vosk import Model, KaldiRecognizer
 
@@ -107,7 +107,7 @@ def main_listen():
             args.samplerate = int(device_info["default_samplerate"])
 
         if args.model is None:
-            model_path = os.path.expanduser("~/Desktop/vosk-model-small-en-us-0.15")
+            model_path = os.path.expanduser("/home/Bryan/Desktop/vosk-model-small-en-us-0.15")
         else:
             model_path = args.model
 
@@ -120,41 +120,43 @@ def main_listen():
 
         with sd.RawInputStream(samplerate=args.samplerate, blocksize=8000, device=args.device,
                            dtype="int16", channels=1, callback=callback):
-        print("#" * 80)
-        print("Press Ctrl+C to stop the recording")
-        print("#" * 80)
+            print("#" * 80)
+            print("Press Ctrl+C to stop the recording")
+            print("#" * 80)
 
-        rec = KaldiRecognizer(model, args.samplerate)
-        while True:
-            data = q.get()
-            if rec.AcceptWaveform(data):
-                words = (rec.Result().split())
-                words.remove("{")
-                words.remove('"text"')
-                words.remove(':')
-                words.remove('}')
-                print(words)
-                for x in range(len(words)):
-                    if words[x] == "neptune" or words[x] == 'neptune"'  or words[x] == '"neptune' :
-                        #t = Timer(5.0, listen(data,rec))
-                        #t.start()
-                        t = time.monotonic()
-                        q.empty()
-                        while True:
-                            data = q.get()
-                            elapsed_time = time.monotonic() - t
-                            if elapsed_time >= 8:
-                                break
-                            elif(rec.AcceptWaveform(data)):
-                                print("something")
-                                string = rec.Result()
-                                print(string)
-                                print(get_response(string, commands))
-                                parseResponse(get_response(string, commands))
-                                codeKey(key)
-                                print(rec.Result())
-                                #print(rec.Result())
-                                break
+            rec = KaldiRecognizer(model, args.samplerate)
+            while True:
+                data = q.get()
+                if rec.AcceptWaveform(data):
+                    words = (rec.Result().split())
+                    words.remove("{")
+                    words.remove('"text"')
+                    words.remove(':')
+                    words.remove('}')
+                    print(words)
+                    for x in range(len(words)):
+                        if words[x] == "neptune" or words[x] == 'neptune"'  or words[x] == '"neptune' :
+                            #t = Timer(5.0, listen(data,rec))
+                            #t.start()
+                            t = time.monotonic()
+                            q.empty()
+                            while True:
+                                data = q.get()
+                                elapsed_time = time.monotonic() - t
+                                if elapsed_time >= 8:
+                                    break
+                                elif(rec.AcceptWaveform(data)):
+                                    print("something")
+                                    string = rec.Result()
+                                    print(string)
+                                    print(get_response(string, commands))
+                                    print(parseResponse(get_response(string, commands)))
+                                    key = get_response(string, commands)
+                                    #print(key)
+                                    codeKey(key)
+                                    #print(rec.Result())
+                                    #print(rec.Result())
+                                    break
 
 
 

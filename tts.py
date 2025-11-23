@@ -39,4 +39,3 @@ musket = ["I own a musket for home defense, since that's what the founding fathe
 "Fix bayonet and charge the last terrified rapscallion.", "He bleeds out waiting on the police to arrive since triangular bayonet wounds are impossible to stitch up.","Ah yes,Just as the founding fathers intended"]
 
 death = ["I'm sorry Miss Jackson HOOO, But I. Am. For. REEEEAALLL"]
-tts(musket)
