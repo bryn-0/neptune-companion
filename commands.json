@@ -3,8 +3,11 @@
   "kiss me through the phone" : "m1",
 
 
-  "What time is it" : "c1",
-  "What's the weather" : "c2",
+  "What time is it" : "c0",
+  "What's the weather" : "c1",
+  "How are you doing" : "c2",
+  "When is your birthday" : "c3",
+  "Are you thirsty" : "c4",
 
   "play dog video" : "v1",
   "play monkey driving video" : "v2",
