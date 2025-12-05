@@ -1,23 +1,39 @@
-import sys
 import os
-import json
-import cv2
+import os
 import time
-import pygame
+import json
 import threading
-import subprocess
+import platform
+import pygame
 from moviepy import VideoFileClip
+
+pygame.mixer.init()
 
 WINDOW_W = 600
 WINDOW_H = 800
-pygame.mixer.init()
-
 current_request = None
-lock = threading.Lock()
 current_frame = None
+lock = threading.Lock()
 
+# Detect if running on Raspberry Pi
+IS_PI = platform.machine().startswith("arm")
+print("Running on Pi:", IS_PI)
 
-##OPENING AND LOADING JSON FILES
+# Try VLC import only on Pi
+if IS_PI:
+    try:
+        import vlc
+        _vlc_instance = vlc.Instance()
+        _vlc_player = _vlc_instance.media_player_new()
+        VLC_AVAILABLE = True
+    except ImportError:
+        print("VLC not available, fallback to CV2")
+        VLC_AVAILABLE = False
+else:
+    VLC_AVAILABLE = False
+    import cv2
+
+# Load JSON
 with open('commands.json', 'r') as f:
     commandsJSON = json.load(f)
 
@@ -27,27 +43,21 @@ with open('music.json', 'r') as s:
 with open('videos.json', 'r') as t:
     videosJSON = json.load(t)
 
-##EXTRACT MP3 FROM MP4, (ALLOWS US TO CHANGE/KEEP DISPLAY WITH DIF AUDIOS)
-##ALSO FOUND THAT CV2 ONLY PLAYS VID AND NO AUDIO SO WE NEED THIS :(
+
+# Extract audio from MP4
 def extract(mp4_path, output_dir="audio_cache"):
-
     os.makedirs(output_dir, exist_ok=True)
-
-    # Create MP3 file path
     base_name = os.path.splitext(os.path.basename(mp4_path))[0]
     mp3_path = os.path.join(output_dir, f"{base_name}.mp3")
-
-    # Extract audio
     clip = VideoFileClip(mp4_path)
-    clip.audio.write_audiofile(mp3_path, logger=None)  # logger=None to suppress output
-
+    clip.audio.write_audiofile(mp3_path, logger=None)
     return mp3_path
 
-##PLAY AUDIO METHOD USING PYGAME
+
+# Play audio
 def play_audio(mp_name):
     pygame.mixer.music.load(mp_name)
     pygame.mixer.music.play()
-    print("Playing MP3:", mp_name)
     while pygame.mixer.music.get_busy():
         time.sleep(0.01)
         with lock:
@@ -55,95 +65,76 @@ def play_audio(mp_name):
                 pygame.mixer.music.stop()
                 break
 
-##PLAY VID METHOD USING CV2
+# Play video
 def play_vid(path):
     global current_frame, current_request
-
-    cap = cv2.VideoCapture(path)
-    if not cap.isOpened():
-        print("Cannot open:", path)
-        return
-
-    # Getting FPS
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    if fps == 0:
-        fps = 30
-    frame_duration = 1.0 / fps
-
-    while True:
-        start_time = time.perf_counter()
-
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        frame = cv2.resize(frame, (WINDOW_W, WINDOW_H))
-
-        with lock:
-            current_frame = frame.copy()
-            if current_request is not None:
+    if IS_PI and VLC_AVAILABLE:
+        # VLC backend
+        media = _vlc_instance.media_new(path)
+        _vlc_player.set_media(media)
+        _vlc_player.play()
+        while True:
+            time.sleep(0.1)
+            state = _vlc_player.get_state()
+            with lock:
+                if current_request is not None:
+                    _vlc_player.stop()
+                    break
+            if state in [vlc.State.Ended, vlc.State.Error]:
                 break
+    else:
+        # CV2 backend
+        cap = cv2.VideoCapture(path)
+        fps = cap.get(cv2.CAP_PROP_FPS) or 30
+        frame_duration = 1.0 / fps
 
-        # Adjusting for fps of vid
-        elapsed = time.perf_counter() - start_time
-        sleep_time = max(0, frame_duration - elapsed)
-        time.sleep(sleep_time)
+        while True:
+            start = time.perf_counter()
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frame = cv2.resize(frame, (WINDOW_W, WINDOW_H))
+            with lock:
+                current_frame = frame.copy()
+                if current_request is not None:
+                    break
+            elapsed = time.perf_counter() - start
+            time.sleep(max(0, frame_duration - elapsed))
+        cap.release()
 
-    cap.release()
 
-
-##LOOPING IDLE VID, JUMPS INTO MP4/MP3 AND GOES BACK TO IDLE LOOP
+# Media loop
 def media_loop():
     global current_request
-    idle_vid = "deadpool.mp4" ##IDLE LOOPED ANIMATION FOR NEPTUNE
-
+    idle_vid = "deadpool.mp4"
     while True:
-
         play_vid(idle_vid)
-
         req = current_request
         current_request = None
-
         if req is None:
             continue
-
         ext = os.path.splitext(req)[1].lower()
-
         if ext == ".mp4":
             mp3 = extract(req)
-            audio_thread = threading.Thread(target=play_audio, args=(mp3,))
-            audio_thread.start()
+            t = threading.Thread(target=play_audio, args=(mp3,))
+            t.start()
             play_vid(req)
-            audio_thread.join()
-
-        elif ext == '.mp3':
+            t.join()
+        elif ext == ".mp3":
             play_audio(req)
-            #play_vid("dance.mp4") ##Dancing Neptune Animation
 
-##CODEKEY RECOGNIZES IF MP3 or MP4 AND FINDS KEY -> COMMAND IN JSON,
-## EXAMPLE: M9 -> MP3 -> goes to music.json -> finds key "9"
-# -> gets value which is the mp4 file -> calls playmedia method
+
+# CodeKey
 
 def codeKey(key):
     global current_request
-
-    if key [0] == "m" :
-        print("Read as MP3")
-        if key[1] in musicJSON:
-            print(musicJSON[key[1]])
-            path = musicJSON[key[1]]
-            with lock:
-                current_request = path
-
-    if key [0] == "v" :
-        print("Read as Video")
-        if key[1] in videosJSON:
-            print(videosJSON[key[1]])
-            path = videosJSON[key[1]]
-            with lock:
-                current_request = path
+    if key[0] == "m" and key[1] in musicJSON:
+        with lock:
+            current_request = musicJSON[key[1]]
+    if key[0] == "v" and key[1] in videosJSON:
+        with lock:
+            current_request = videosJSON[key[1]]
 
 
 def start_media_loop():
     threading.Thread(target=media_loop, daemon=True).start()
-
