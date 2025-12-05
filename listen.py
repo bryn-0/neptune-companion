@@ -8,13 +8,14 @@ import argparse
 import queue
 import sys
 import sounddevice as sd
-sd.default.device = 0,0
+sd.default.device = 11,11
 import os
 from vosk import Model, KaldiRecognizer
 
 import time
 import json
 from rapidfuzz import process
+from tts import tts
 import pygame
 from pyvidplayer2 import Video
 #from audioplayer import AudioPlayer
@@ -41,6 +42,14 @@ def get_response(input, commands):
         return commands[match]
     else:
         return "Command not found"
+
+def parseResponse(key):
+    if key[0] == 'm':
+        print()
+    if key[0] == 'v':
+        print()
+    if key[0] == 'c':
+        print()
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -98,7 +107,7 @@ def main_listen():
             args.samplerate = int(device_info["default_samplerate"])
 
         if args.model is None:
-            model_path = os.path.expanduser("~/Desktop/vosk-model-small-en-us-0.15")
+            model_path = os.path.expanduser("/home/Bryan/Desktop/vosk-model-small-en-us-0.15")
         else:
             model_path = args.model
 
@@ -141,9 +150,12 @@ def main_listen():
                                     string = rec.Result()
                                     print(string)
                                     print(get_response(string, commands))
-                                    key = (get_response(string, commands))
+                                    print(parseResponse(get_response(string, commands)))
+                                    key = get_response(string, commands)
+                                    #print(key)
                                     codeKey(key)
-                                    print(rec.Result())
+                                    #print(rec.Result())
+                                    #print(rec.Result())
                                     break
 
 
