@@ -5,7 +5,8 @@ import json
 import threading
 import platform
 import pygame
-from moviepy import VideoFileClip
+#from moviepy import VideoFileClip
+from tts import tts
 
 pygame.mixer.init()
 
@@ -42,7 +43,8 @@ with open('music.json', 'r') as s:
 
 with open('videos.json', 'r') as t:
     videosJSON = json.load(t)
-
+with open('voice.json', 'r') as g:
+    voiceJSON = json.load(g)
 
 # Extract audio from MP4
 def extract(mp4_path, output_dir="audio_cache"):
@@ -134,6 +136,9 @@ def codeKey(key):
     if key[0] == "v" and key[1] in videosJSON:
         with lock:
             current_request = videosJSON[key[1]]
+    if key[0] == "c" and key[1] in voiceJSON:
+        with lock:
+           tts(voiceJSON[key[1]])
 
 
 def start_media_loop():
